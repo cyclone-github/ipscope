@@ -1,4 +1,11 @@
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=cyclone-github&repo=ipscope&theme=gruvbox)](https://github.com/cyclone-github/)
+[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=cyclone-github&repo=ipscope&theme=gruvbox)](https://github.com/cyclone-github/ipscope/)
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/cyclone-github/ipscope)](https://goreportcard.com/report/github.com/cyclone-github/ipscope)
+[![GitHub issues](https://img.shields.io/github/issues/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/issues)
+[![License](https://img.shields.io/github/license/cyclone-github/ipscope.svg)](LICENSE)
+<!-- [![GitHub release](https://img.shields.io/github/release/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/releases) -->
+<!-- [![Go Reference](https://pkg.go.dev/badge/github.com/cyclone-github/ipscope.svg)](https://pkg.go.dev/github.com/cyclone-github/ipscope) -->
+
 # IPScope
 
 A CLI tool written in pure Go for IP lookup and subdomain discovery. Designed for security researchers and network administrators to resolve IP addresses for TLDs and subdomains. Includes support for some reverse proxy and WAF detection.
