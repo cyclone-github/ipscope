@@ -24,21 +24,27 @@ https://github.com/cyclone-github/ipscope/blob/main/LICENSE
 
 Version History:
 
-0.1.0-2023-12-15
+0.1.0; 2023-12-15
 	Initial version
-0.2.1-2024-09-30
+0.2.1; 2024-09-30
 	Refactored code
 	Refined flags
 	Added domain lookup from crt.sh
 	Added proxy / WAF checks
 	Added CloudFlare IP lookup
 	Added built-in subdomain lists
+0.2.2; 2025-01-04
+	Added geo printout
+	Updated Reverse Proxy / WAF list
 */
 
 const cloudflareIPv4URL = "https://www.cloudflare.com/ips-v4/"
 
 type IPInfo struct {
-	Org string `json:"org"`
+	Org     string `json:"org"`
+	Region  string `json:"region"`
+	Country string `json:"country"`
+	City    string `json:"city"`
 }
 
 func main() {

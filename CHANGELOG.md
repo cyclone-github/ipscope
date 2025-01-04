@@ -1,4 +1,9 @@
-### version 0.2.1-2024-09-30
+### version 0.2.2; 2025-01-04
+```
+Added geo printout
+Updated Reverse Proxy / WAF list
+```
+### version 0.2.1; 2024-09-30
 ```
 Refactored code
 Refined flags
@@ -7,7 +12,7 @@ Added proxy / WAF checks
 Added CloudFlare IP lookup
 Added built-in subdomain lists
 ```
-### version 0.1.0-2023-12-15
+### version 0.1.0; 2023-12-15
 ```
 Initial version
 ```

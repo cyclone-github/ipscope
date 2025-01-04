@@ -55,15 +55,15 @@ func printOutput(writer *tabwriter.Writer, label, domain string, ips []net.IP) {
 				continue
 			}
 
-			org, err := getIPInfo(ipv4.String())
+			ipInfo, err := getIPInfo(ipv4.String())
 			if err != nil {
-				fmt.Fprintf(writer, "Error fetching organization info: %v\n", err)
+				fmt.Fprintf(writer, "Error fetching IP info: %v\n", err)
 			} else {
-				isReverseProxy := checkCloudFlare(ipv4.String()) || checkKnownWAF(org)
+				isReverseProxy := checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org)
 				if isReverseProxy {
-					fmt.Fprintf(writer, "%-3s\t%-24s\t%-20s\t%-24s (Reverse Proxy or WAF Detected)\n", label, domain, ipv4, org)
+					fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s (Reverse Proxy or WAF Detected)\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
 				} else {
-					fmt.Fprintf(writer, "%-3s\t%-24s\t%-20s\t%-24s\n", label, domain, ipv4, org)
+					fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
 				}
 			}
 		}
@@ -74,45 +74,58 @@ func printOutput(writer *tabwriter.Writer, label, domain string, ips []net.IP) {
 func checkKnownWAF(org string) bool {
 	org = strings.ToLower(org)
 	return strings.Contains(org, "cloudflare") || // Cloudflare
+		strings.Contains(org, "360.cn") || // Qihoo 360
 		strings.Contains(org, "akamai") || // Akamai
+		strings.Contains(org, "aliyun") || // Alibaba Cloud
 		strings.Contains(org, "amazon") || // Amazon AWS
-		strings.Contains(org, "fastly") || // Fastly
-		strings.Contains(org, "imperva") || // Imperva
-		strings.Contains(org, "incapsula") || // Incapsula
-		strings.Contains(org, "sucuri") || // Sucuri
-		strings.Contains(org, "stackpath") || // StackPath
-		strings.Contains(org, "f5") || // F5 Networks
-		strings.Contains(org, "google") || // Google
-		strings.Contains(org, "microsoft") || // Microsoft
+		strings.Contains(org, "arvancloud") || // ArvanCloud
+		strings.Contains(org, "aws waf") || // AWS WAF
+		strings.Contains(org, "azure") || // Azure
+		strings.Contains(org, "baidu") || // Baidu Cloud
 		strings.Contains(org, "barracuda") || // Barracuda
+		strings.Contains(org, "bitninja") || // BitNinja
+		strings.Contains(org, "blazingfast") || // BlazingFast
+		strings.Contains(org, "cdnsun") || // CDNSun
 		strings.Contains(org, "citrix") || // Citrix
 		strings.Contains(org, "cloudfront") || // CloudFront
-		strings.Contains(org, "verizon") || // Verizon
-		strings.Contains(org, "fortinet") || // Fortinet
-		strings.Contains(org, "edgecast") || // Edgecast
+		strings.Contains(org, "digitalocean") || // DigitalOcean
 		strings.Contains(org, "dyn") || // Dyn
-		strings.Contains(org, "radware") || // Radware
-		strings.Contains(org, "azure") || // Azure
-		strings.Contains(org, "arvancloud") || // ArvanCloud
+		strings.Contains(org, "edgecast") || // Edgecast
+		strings.Contains(org, "f5") || // F5 Networks
+		strings.Contains(org, "fastly") || // Fastly
+		strings.Contains(org, "fortinet") || // Fortinet
+		strings.Contains(org, "gcore") || // Gcore
+		strings.Contains(org, "google") || // Google
+		strings.Contains(org, "imperva") || // Imperva
+		strings.Contains(org, "incapsula") || // Imperva Incapsula
+		strings.Contains(org, "incapsula") || // Incapsula
+		strings.Contains(org, "kingsoft") || // Kingsoft Cloud
+		strings.Contains(org, "limelight") || // Limelight Networks
+		strings.Contains(org, "microsoft") || // Microsoft
+		strings.Contains(org, "neustar") || // Neustar
 		strings.Contains(org, "onapp") || // OnApp
-		strings.Contains(org, "bitninja") || // BitNinja
+		strings.Contains(org, "quantil") || // QUANTIL
+		strings.Contains(org, "radware") || // Radware
 		strings.Contains(org, "reblaze") || // Reblaze
 		strings.Contains(org, "section.io") || // Section.io
-		strings.Contains(org, "neustar") || // Neustar
-		strings.Contains(org, "blazingfast") || // BlazingFast
-		strings.Contains(org, "quantil") || // QUANTIL
-		strings.Contains(org, "cdnsun") // CDNSun
+		strings.Contains(org, "shield") || // Cloudflare Spectrum/Shield
+		strings.Contains(org, "stackpath") || // StackPath
+		strings.Contains(org, "stackrox") || // StackRox
+		strings.Contains(org, "sucuri") || // Sucuri
+		strings.Contains(org, "tencent") || // Tencent Cloud
+		strings.Contains(org, "verizon") || // Verizon
+		strings.Contains(org, "vultr") // Vultr
 }
 
 // get org info from IP
-func getIPInfo(ip string) (string, error) {
+func getIPInfo(ip string) (*IPInfo, error) {
 	url := fmt.Sprintf("https://ipinfo.io/%s/json", ip)
 	backoffTime := initialBackoff
 
 	for {
 		resp, err := http.Get(url)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		defer resp.Body.Close()
 
@@ -137,10 +150,10 @@ func getIPInfo(ip string) (string, error) {
 
 		var ipInfo IPInfo
 		if err := json.NewDecoder(resp.Body).Decode(&ipInfo); err != nil {
-			return "", err
+			return nil, err
 		}
 
-		return ipInfo.Org, nil
+		return &ipInfo, nil
 	}
 }
 
@@ -210,7 +223,7 @@ func isValidPublicIPv4(ip net.IP) bool {
 
 // version info
 func versionFunc() {
-	fmt.Fprintln(os.Stderr, "Cyclone's IPScope v0.2.1-2024-09-30\nhttps://github.com/cyclone-github/ipscope\n")
+	fmt.Fprintln(os.Stderr, "Cyclone's IPScope v0.2.2; 2025-01-04\nhttps://github.com/cyclone-github/ipscope\n")
 }
 
 // cyclone

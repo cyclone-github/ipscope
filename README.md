@@ -3,14 +3,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/cyclone-github/ipscope)](https://goreportcard.com/report/github.com/cyclone-github/ipscope)
 [![GitHub issues](https://img.shields.io/github/issues/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/issues)
 [![License](https://img.shields.io/github/license/cyclone-github/ipscope.svg)](LICENSE)
-<!-- [![GitHub release](https://img.shields.io/github/release/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/releases) -->
+[![GitHub release](https://img.shields.io/github/release/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/releases)
 <!-- [![Go Reference](https://pkg.go.dev/badge/github.com/cyclone-github/ipscope.svg)](https://pkg.go.dev/github.com/cyclone-github/ipscope) -->
 
 # IPScope
 
 A CLI tool written in pure Go for IP lookup and subdomain discovery. Designed for security researchers and network administrators to resolve IP addresses for TLDs and subdomains. Includes support for some reverse proxy and WAF detection.
 
-IPScope was written as a capable, no-fuss alternative to more complex CLI tools commonly used for subdomain discovery and active DNS resolution. IPScope features a simple CLI that only requires one command-line argument, the target URL, while maintaining a powerful backend and optional command-line arguments for further customization. Since it's written in Go, there's no need to hunt down outdated or obscure Python dependencies, and since it's written with ease of use in mind, there's no need to figure out complex command-line arguments -- **IPScope just works**.
+IPScope was written as a capable, no-fuss alternative to more complex CLI tools commonly used for subdomain discovery and active DNS resolution. IPScope features a simple CLI that only requires one command-line argument, the target URL, while maintaining a powerful backend and optional command-line arguments for further customization. Since it's written in Go, there's no need to hunt down outdated or obscure Python / Ruby dependencies, and since it's written with ease of use in mind, there's no need to figure out complex command-line arguments -- **IPScope just works**.
 
 ### Usage Instructions:
 Of course, don't run IPScope on domains you don't have permission to probe.
@@ -27,8 +27,8 @@ Of course, don't run IPScope on domains you don't have permission to probe.
 
 Processing URL: example.org using DNS: 1.1.1.1
 
-  TLD  example.org               93.184.215.14       AS15133 Edgecast Inc.    (Reverse Proxy or WAF Detected)
-  TLD  www.example.org           93.184.215.14       AS15133 Edgecast Inc.    (Reverse Proxy or WAF Detected)
+  TLD  example.org                93.184.215.14     AS15133 Edgecast Inc.            Dźwirzyno, West Pomerania, PL (Reverse Proxy or WAF Detected)
+  TLD  www.example.org            93.184.215.14     AS15133 Edgecast Inc.            Dźwirzyno, West Pomerania, PL (Reverse Proxy or WAF Detected)
 ```
   - `./ipscope.bin -url example.org -sub subdomains.txt -dns 8.8.8.8`
 
