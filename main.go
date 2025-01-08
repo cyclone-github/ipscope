@@ -36,6 +36,10 @@ Version History:
 0.2.2; 2025-01-04
 	Added geo printout
 	Updated Reverse Proxy / WAF list
+0.2.3; 2025-01-07
+	Addressed https://github.com/cyclone-github/ipscope/issues/1
+	Addressed https://github.com/cyclone-github/ipscope/issues/2
+	Addressed https://github.com/cyclone-github/ipscope/issues/3
 */
 
 const cloudflareIPv4URL = "https://www.cloudflare.com/ips-v4/"
@@ -52,6 +56,7 @@ func main() {
 	urlFlag := flag.String("url", "", "URL to process")
 	subFlag := flag.String("sub", "", "File containing subdomains")
 	dnsFlag := flag.String("dns", "1.1.1.1", "Custom DNS server (ex: 1.1.1.1)")
+	jsonFlag := flag.Bool("json", false, "Output results in JSON format")
 	cycloneFlag := flag.Bool("cyclone", false, "")
 	versionFlag := flag.Bool("version", false, "Version info")
 	helpFlag := flag.Bool("help", false, "Display help")
@@ -79,6 +84,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	jsonOutput := *jsonFlag
+
 	domain := *urlFlag
 
 	// DNS resolver
@@ -99,8 +106,8 @@ func main() {
 
 	printCyclone()
 
-	fmt.Fprintf(writer, "Processing URL: %s using DNS: %s\n\n", domain, *dnsFlag)
-	writer.Flush()
+	fmt.Fprintf(os.Stderr, "Processing URL: %s using DNS: %s\n\n", domain, *dnsFlag)
+	//writer.Flush()
 
 	// load Cloudflare IP ranges
 	loadCloudflareIPs()
@@ -136,7 +143,7 @@ func main() {
 			}
 
 			if ips, err := customResolver.LookupIP(context.Background(), "ip4", fullDomain); err == nil {
-				printOutput(writer, label, fullDomain, ips)
+				printOutput(writer, label, fullDomain, ips, jsonOutput)
 				writer.Flush()
 			}
 		}
@@ -148,7 +155,7 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(writer, "Error getting IP for TLD (%s): %v\n", domain, err)
 		} else {
-			printOutput(writer, "TLD", domain, tldIPs)
+			printOutput(writer, "TLD", domain, tldIPs, jsonOutput)
 			writer.Flush()
 			processedSubdomains[domain] = true
 		}
@@ -171,7 +178,7 @@ func main() {
 			}
 			processedSubdomains[fullDomain] = true
 			if ips, err := customResolver.LookupIP(context.Background(), "ip4", fullDomain); err == nil {
-				printOutput(writer, "SUB", fullDomain, ips)
+				printOutput(writer, "SUB", fullDomain, ips, jsonOutput)
 				writer.Flush()
 			}
 		}
@@ -187,7 +194,7 @@ func main() {
 			}
 			processedSubdomains[fullDomain] = true
 			if ips, err := customResolver.LookupIP(context.Background(), "ip4", fullDomain); err == nil {
-				printOutput(writer, "SUB", fullDomain, ips)
+				printOutput(writer, "SUB", fullDomain, ips, jsonOutput)
 				writer.Flush()
 			}
 		}

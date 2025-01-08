@@ -39,7 +39,8 @@ func getSubdomainsFromCRT(domain string) ([]string, error) {
 		names := strings.Split(entry.NameValue, "\n")
 		for _, name := range names {
 			name = strings.TrimSpace(name)
-			if strings.HasSuffix(name, domain) {
+			// tld sanity check
+			if isValidDomain(name, domain) {
 				subdomainsSet[name] = struct{}{}
 			}
 		}
@@ -51,4 +52,17 @@ func getSubdomainsFromCRT(domain string) ([]string, error) {
 	}
 
 	return subdomains, nil
+}
+
+func isValidDomain(name, domain string) bool {
+	// only process domains from the tld domain
+	if !strings.HasSuffix(name, "."+domain) && name != domain {
+		return false
+	}
+	/* // explicitly exclude punycode domains -- probably not necessary as this would cause false negatives
+	if strings.HasPrefix(name, "xn--") {
+		return false
+	}
+	*/
+	return true
 }
