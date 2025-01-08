@@ -48,17 +48,60 @@ func init() {
 }
 
 // print info
-func printOutput(writer *tabwriter.Writer, label, domain string, ips []net.IP) {
-	for _, ip := range ips {
-		if ipv4 := ip.To4(); ipv4 != nil {
-			if !isValidPublicIPv4(ipv4) {
-				continue
-			}
+func printOutput(writer *tabwriter.Writer, label, domain string, ips []net.IP, jsonOutput bool) {
+	type JSONOutput struct {
+		Label   string `json:"label"`
+		Domain  string `json:"domain"`
+		IP      string `json:"ip"`
+		Asn     string `json:"asn"`
+		City    string `json:"city"`
+		Region  string `json:"region"`
+		Country string `json:"country"`
+		Proxy   bool   `json:"proxy"`
+	}
 
-			ipInfo, err := getIPInfo(ipv4.String())
-			if err != nil {
-				fmt.Fprintf(writer, "Error fetching IP info: %v\n", err)
-			} else {
+	if jsonOutput {
+		// JSON output format
+		for _, ip := range ips {
+			if ipv4 := ip.To4(); ipv4 != nil {
+				if !isValidPublicIPv4(ipv4) {
+					continue
+				}
+
+				ipInfo, err := getIPInfo(ipv4.String())
+				if err != nil {
+					continue
+				}
+
+				output := JSONOutput{
+					Label:   label,
+					Domain:  domain,
+					IP:      ipv4.String(),
+					Asn:     ipInfo.Org,
+					City:    ipInfo.City,
+					Region:  ipInfo.Region,
+					Country: ipInfo.Country,
+					Proxy:   checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org),
+				}
+
+				jsonData, _ := json.Marshal(output)
+				fmt.Println(string(jsonData))
+			}
+		}
+	} else {
+		// tabwriter "pretty" output
+		for _, ip := range ips {
+			if ipv4 := ip.To4(); ipv4 != nil {
+				if !isValidPublicIPv4(ipv4) {
+					continue
+				}
+
+				ipInfo, err := getIPInfo(ipv4.String())
+				if err != nil {
+					fmt.Fprintf(writer, "Error fetching IP info: %v\n", err)
+					continue
+				}
+
 				isReverseProxy := checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org)
 				if isReverseProxy {
 					fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s (Reverse Proxy or WAF Detected)\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
@@ -223,7 +266,7 @@ func isValidPublicIPv4(ip net.IP) bool {
 
 // version info
 func versionFunc() {
-	fmt.Fprintln(os.Stderr, "Cyclone's IPScope v0.2.2; 2025-01-04\nhttps://github.com/cyclone-github/ipscope\n")
+	fmt.Fprintln(os.Stderr, "Cyclone's IPScope v0.2.3; 2025-01-07\nhttps://github.com/cyclone-github/ipscope\n")
 }
 
 // cyclone
@@ -236,7 +279,7 @@ func printCyclone() {
  \____)\__  |\____)\_)___/|_| |_|_____)
       (____/                           
 `
-	fmt.Println(cyclone)
+	fmt.Fprintln(os.Stderr, cyclone)
 	time.Sleep(250 * time.Millisecond)
 }
 
