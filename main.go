@@ -37,9 +37,9 @@ Version History:
 	Added geo printout
 	Updated Reverse Proxy / WAF list
 0.2.3; 2025-01-07
-	Addressed https://github.com/cyclone-github/ipscope/issues/1
-	Addressed https://github.com/cyclone-github/ipscope/issues/2
-	Addressed https://github.com/cyclone-github/ipscope/issues/3
+	add sanity check for punycode domains, https://github.com/cyclone-github/ipscope/issues/1
+	add -json output flag, https://github.com/cyclone-github/ipscope/issues/2
+	fixed stdout to stderr, https://github.com/cyclone-github/ipscope/issues/3
 */
 
 const cloudflareIPv4URL = "https://www.cloudflare.com/ips-v4/"

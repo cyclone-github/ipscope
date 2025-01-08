@@ -1,3 +1,9 @@
+### version 0.2.3; 2025-01-07
+```
+add sanity check for punycode domains, https://github.com/cyclone-github/ipscope/issues/1
+add -json output flag, https://github.com/cyclone-github/ipscope/issues/2
+fixed stdout to stderr, https://github.com/cyclone-github/ipscope/issues/3
+```
 ### version 0.2.2; 2025-01-04
 ```
 Added geo printout
