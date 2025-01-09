@@ -1,3 +1,9 @@
+### version 0.2.4; 2025-01-08
+```
+added -o {output_file} flag to redirect stdout to file
+updated -help output
+refactored code
+```
 ### version 0.2.3; 2025-01-07
 ```
 add sanity check for punycode domains, https://github.com/cyclone-github/ipscope/issues/1

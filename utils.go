@@ -40,7 +40,7 @@ func init() {
 	for _, cidr := range staticIPs {
 		_, ipnet, err := net.ParseCIDR(cidr)
 		if err != nil {
-			fmt.Printf("Failed to parse Cloudflare IP range %s: %v\n", cidr, err)
+			fmt.Fprintf(os.Stderr, "Failed to parse Cloudflare IP range %s: %v\n", cidr, err)
 			continue
 		}
 		cloudflareIPNets = append(cloudflareIPNets, ipnet)
@@ -60,54 +60,40 @@ func printOutput(writer *tabwriter.Writer, label, domain string, ips []net.IP, j
 		Proxy   bool   `json:"proxy"`
 	}
 
-	if jsonOutput {
-		// JSON output format
-		for _, ip := range ips {
-			if ipv4 := ip.To4(); ipv4 != nil {
-				if !isValidPublicIPv4(ipv4) {
-					continue
-				}
-
-				ipInfo, err := getIPInfo(ipv4.String())
-				if err != nil {
-					continue
-				}
-
-				output := JSONOutput{
-					Label:   label,
-					Domain:  domain,
-					IP:      ipv4.String(),
-					Asn:     ipInfo.Org,
-					City:    ipInfo.City,
-					Region:  ipInfo.Region,
-					Country: ipInfo.Country,
-					Proxy:   checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org),
-				}
-
-				jsonData, _ := json.Marshal(output)
-				fmt.Println(string(jsonData))
-			}
+	for _, ip := range ips {
+		ipv4 := ip.To4()
+		if ipv4 == nil || !isValidPublicIPv4(ipv4) {
+			continue
 		}
-	} else {
-		// tabwriter "pretty" output
-		for _, ip := range ips {
-			if ipv4 := ip.To4(); ipv4 != nil {
-				if !isValidPublicIPv4(ipv4) {
-					continue
-				}
 
-				ipInfo, err := getIPInfo(ipv4.String())
-				if err != nil {
-					fmt.Fprintf(writer, "Error fetching IP info: %v\n", err)
-					continue
-				}
+		ipInfo, err := getIPInfo(ipv4.String())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error fetching IP info for %s: %v\n", ipv4.String(), err)
+			continue
+		}
 
-				isReverseProxy := checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org)
-				if isReverseProxy {
-					fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s (Reverse Proxy or WAF Detected)\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
-				} else {
-					fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
-				}
+		isReverseProxy := checkCloudFlare(ipv4.String()) || checkKnownWAF(ipInfo.Org)
+
+		if jsonOutput {
+			// JSON output format
+			output := JSONOutput{
+				Label:   label,
+				Domain:  domain,
+				IP:      ipv4.String(),
+				Asn:     ipInfo.Org,
+				City:    ipInfo.City,
+				Region:  ipInfo.Region,
+				Country: ipInfo.Country,
+				Proxy:   isReverseProxy,
+			}
+			jsonData, _ := json.Marshal(output)
+			fmt.Println(string(jsonData))
+		} else {
+			// tabwriter "pretty" output
+			if isReverseProxy {
+				fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s (Reverse Proxy or WAF Detected)\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
+			} else {
+				fmt.Fprintf(writer, "%-3s\t%-25s\t%-16s\t%-32s\t %s, %s, %s\n", label, domain, ipv4, ipInfo.Org, ipInfo.City, ipInfo.Region, ipInfo.Country)
 			}
 		}
 	}
@@ -178,7 +164,7 @@ func getIPInfo(ip string) (*IPInfo, error) {
 			if retryAfter != "" {
 				if seconds, err := strconv.Atoi(retryAfter); err == nil {
 					waitTime = time.Duration(seconds) * time.Second
-					fmt.Printf("Rate-limited: Retrying after %s...\n", waitTime)
+					fmt.Fprintf(os.Stderr, "Rate-limited: Retrying after %s...\n", waitTime)
 				}
 			}
 
@@ -217,14 +203,14 @@ func checkCloudFlare(ipStr string) bool {
 func loadCloudflareIPs() {
 	resp, err := http.Get(cloudflareIPv4URL)
 	if err != nil {
-		fmt.Println("Failed to download Cloudflare IPs, using static list.")
+		fmt.Fprintln(os.Stderr, "Failed to download Cloudflare IPs, using static list.")
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Failed to read Cloudflare IPs, using static list.")
+		fmt.Fprintln(os.Stderr, "Failed to read Cloudflare IPs, using static list.")
 		return
 	}
 
@@ -236,7 +222,7 @@ func loadCloudflareIPs() {
 		}
 		_, ipnet, err := net.ParseCIDR(ipStr)
 		if err != nil {
-			fmt.Printf("Failed to parse Cloudflare IP range %s: %v\n", ipStr, err)
+			fmt.Fprintf(os.Stderr, "Failed to parse Cloudflare IP range %s: %v\n", ipStr, err)
 			continue
 		}
 		cloudflareIPNets = append(cloudflareIPNets, ipnet)
@@ -266,7 +252,7 @@ func isValidPublicIPv4(ip net.IP) bool {
 
 // version info
 func versionFunc() {
-	fmt.Fprintln(os.Stderr, "Cyclone's IPScope v0.2.3; 2025-01-07\nhttps://github.com/cyclone-github/ipscope\n")
+	fmt.Fprint(os.Stderr, "Cyclone's IPScope v0.2.4; 2025-01-08\nhttps://github.com/cyclone-github/ipscope\n\n")
 }
 
 // cyclone
@@ -280,6 +266,7 @@ func printCyclone() {
       (____/                           
 `
 	fmt.Fprintln(os.Stderr, cyclone)
+	versionFunc()
 	time.Sleep(250 * time.Millisecond)
 }
 
@@ -289,15 +276,16 @@ func helpFunc() {
 	str := `Example Usage:
 
 ./ipscope.bin -url example.com
-./ipscope.bin -url example.com -sub subdomains.txt -dns 8.8.8.8
+./ipscope.bin -url example.com -sub subdomains.txt -dns 8.8.8.8 -json -o output.txt
 
 Supported flags:
 
--url example.com (required)
--sub subdomain.txt (optional, defaults to built-in list)
--dns 8.8.8.8 (optional, defaults to 1.1.1.1)
-
--help (usage instructions)
--version (version info)`
+-url		(url to scan)
+-sub		(defaults to built-in list)
+-dns		(defaults to 1.1.1.1)
+-json		(outputs stdout to json)
+-o		(redirects stdout to file)
+-help		(usage instructions)
+-version	(version info)`
 	fmt.Fprintln(os.Stderr, str)
 }

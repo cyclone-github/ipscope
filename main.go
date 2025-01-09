@@ -13,7 +13,7 @@ import (
 )
 
 /*
-IPScope is a CLI tool for IP lookup and subdomain discovery.
+IPScope is a CLI tool for subdomain discovery and IP lookup.
 Designed for security researchers and network administrators to resolve IP addresses for TLDs and subdomains.
 Includes support for some reverse proxy and WAF detection.
 
@@ -40,6 +40,10 @@ Version History:
 	add sanity check for punycode domains, https://github.com/cyclone-github/ipscope/issues/1
 	add -json output flag, https://github.com/cyclone-github/ipscope/issues/2
 	fixed stdout to stderr, https://github.com/cyclone-github/ipscope/issues/3
+0.2.4; 2025-01-08
+	added -o {output_file} flag to redirect stdout to file
+	updated -help output
+	refactored code
 */
 
 const cloudflareIPv4URL = "https://www.cloudflare.com/ips-v4/"
@@ -57,6 +61,7 @@ func main() {
 	subFlag := flag.String("sub", "", "File containing subdomains")
 	dnsFlag := flag.String("dns", "1.1.1.1", "Custom DNS server (ex: 1.1.1.1)")
 	jsonFlag := flag.Bool("json", false, "Output results in JSON format")
+	outputFlag := flag.String("o", "", "Output to file (defaults to stdout)")
 	cycloneFlag := flag.Bool("cyclone", false, "")
 	versionFlag := flag.Bool("version", false, "Version info")
 	helpFlag := flag.Bool("help", false, "Display help")
@@ -84,6 +89,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	if *outputFlag != "" {
+		file, err := os.OpenFile(*outputFlag, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening output file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		os.Stdout = file
+	}
+
 	jsonOutput := *jsonFlag
 
 	domain := *urlFlag
@@ -107,7 +122,10 @@ func main() {
 	printCyclone()
 
 	fmt.Fprintf(os.Stderr, "Processing URL: %s using DNS: %s\n\n", domain, *dnsFlag)
-	//writer.Flush()
+
+	if *outputFlag != "" {
+		fmt.Fprintf(os.Stderr, "Output redirected to file: %s\n\n", *outputFlag)
+	}
 
 	// load Cloudflare IP ranges
 	loadCloudflareIPs()
@@ -121,7 +139,6 @@ func main() {
 	var err error
 
 	for i := 0; i < retries; i++ {
-		writer.Flush()
 		crtSubdomains, err = getSubdomainsFromCRT(domain)
 		if err == nil {
 			break
@@ -153,7 +170,7 @@ func main() {
 	if !processedSubdomains[domain] {
 		tldIPs, err := customResolver.LookupIP(context.Background(), "ip4", domain)
 		if err != nil {
-			fmt.Fprintf(writer, "Error getting IP for TLD (%s): %v\n", domain, err)
+			fmt.Fprintf(os.Stderr, "Error getting IP for TLD (%s): %v\n", domain, err)
 		} else {
 			printOutput(writer, "TLD", domain, tldIPs, jsonOutput)
 			writer.Flush()
@@ -164,7 +181,7 @@ func main() {
 	if *subFlag != "" {
 		file, err := os.Open(*subFlag)
 		if err != nil {
-			fmt.Fprintf(writer, "Error opening subdomains file (%s): %v\n", *subFlag, err)
+			fmt.Fprintf(os.Stderr, "Error opening subdomains file (%s): %v\n", *subFlag, err)
 			os.Exit(1)
 		}
 		defer file.Close()
@@ -184,7 +201,7 @@ func main() {
 		}
 
 		if err := scanner.Err(); err != nil {
-			fmt.Fprintf(writer, "Error reading subdomains file (%s): %v\n", *subFlag, err)
+			fmt.Fprintf(os.Stderr, "Error reading subdomains file (%s): %v\n", *subFlag, err)
 		}
 	} else {
 		for _, subdomain := range defaultSubdomains() {
