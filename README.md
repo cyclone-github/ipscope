@@ -8,15 +8,14 @@
 
 # IPScope
 
-A CLI tool written in pure Go for IP lookup and subdomain discovery. Designed for security researchers and network administrators to resolve IP addresses for TLDs and subdomains. Includes support for some reverse proxy and WAF detection.
+A CLI tool written in pure Go for subdomain discovery and IP lookup. Designed for security researchers and network administrators to resolve IP addresses for TLDs and subdomains. Includes support for some reverse proxy and WAF detection.
 
-IPScope was written as a capable, no-fuss alternative to more complex CLI tools commonly used for subdomain discovery and active DNS resolution. IPScope features a simple CLI that only requires one command-line argument, the target URL, while maintaining a powerful backend and optional command-line arguments for further customization. Since it's written in Go, there's no need to hunt down outdated or obscure Python / Ruby dependencies, and since it's written with ease of use in mind, there's no need to figure out complex command-line arguments -- **IPScope just works**.
+IPScope was written as a capable, no-fuss alternative to more complex CLI tools commonly used for subdomain discovery and active DNS resolution. IPScope features a simple CLI that only requires one command-line argument, the target URL, while maintaining a powerful backend and optional command-line arguments for further customization. Since it's written in Go, there's no need to hunt down outdated or obscure Python / Ruby / Perl dependencies (we've all been there), and since it's written with ease of use in mind, there's no need to figure out complex command-line arguments -- **IPScope just works**.
 
 ### Usage Instructions:
 Of course, don't run IPScope on domains you don't have permission to probe.
 
-- Example Usage:
-  - `./ipscope.bin -url example.org`
+- `./ipscope.bin -url example.org`
 ```
                    _                   
   ____ _   _  ____| | ___  ____  _____ 
@@ -25,25 +24,66 @@ Of course, don't run IPScope on domains you don't have permission to probe.
  \____)\__  |\____)\_)___/|_| |_|_____)
       (____/                           
 
+Cyclone's IPScope v0.2.4; 2025-01-08
+https://github.com/cyclone-github/ipscope
+
 Processing URL: example.org using DNS: 1.1.1.1
 
   TLD  example.org                93.184.215.14     AS15133 Edgecast Inc.            Dźwirzyno, West Pomerania, PL (Reverse Proxy or WAF Detected)
   TLD  www.example.org            93.184.215.14     AS15133 Edgecast Inc.            Dźwirzyno, West Pomerania, PL (Reverse Proxy or WAF Detected)
 ```
-  - `./ipscope.bin -url example.org -sub subdomains.txt -dns 8.8.8.8`
+  - `./ipscope.bin -url example.org -sub subdomains.txt -dns 8.8.8.8 -json`
+```
+                   _                   
+  ____ _   _  ____| | ___  ____  _____ 
+ / ___) | | |/ ___) |/ _ \|  _ \| ___ |
+( (___| |_| ( (___| | |_| | | | | ____|
+ \____)\__  |\____)\_)___/|_| |_|_____)
+      (____/                           
 
-The `-dns` flag is useful for testing how a domain resolves with specific DNS servers, such as 1.1.1.1, 8.8.8.8, or DNS based filtering such as Cloudflare 1.1.1.3 or OpenDNS 208.67.222.222. It’s also great for testing locally hosted DNS servers like Pi-hole or pfSense.
+Cyclone's IPScope v0.2.4; 2025-01-08
+https://github.com/cyclone-github/ipscope
+
+Processing URL: example.org using DNS: 8.8.8.8
+
+{"label":"TLD","domain":"www.example.org","ip":"93.184.215.14","asn":"AS15133 Edgecast Inc.","city":"Dźwirzyno","region":"West Pomerania","country":"PL","proxy":true}
+{"label":"TLD","domain":"example.org","ip":"93.184.215.14","asn":"AS15133 Edgecast Inc.","city":"Dźwirzyno","region":"West Pomerania","country":"PL","proxy":true}
+```
+  - `./ipscope.bin -url example.org -sub subdomains.txt -dns 8.8.8.8 -json -o output.txt`
+```
+                   _                   
+  ____ _   _  ____| | ___  ____  _____ 
+ / ___) | | |/ ___) |/ _ \|  _ \| ___ |
+( (___| |_| ( (___| | |_| | | | | ____|
+ \____)\__  |\____)\_)___/|_| |_|_____)
+      (____/                           
+
+Cyclone's IPScope v0.2.4; 2025-01-08
+https://github.com/cyclone-github/ipscope
+
+Processing URL: example.org using DNS: 8.8.8.8
+
+Output redirected to file: output.txt
+```
+### Supported flags:
+  - `-url {foobar.com}        (url to scan)`
+  - `-sub {subdirectory_file} (defaults to built-in list)`
+  - `-dns {dns_server}           (defaults to 1.1.1.1)`
+  - `-json                    (outputs stdout to json format)`
+  - `-o {output_file}         (redirects stdout to file)`
+  - `-help                    (prints usage instructions)`
+  - `-version                 (prints version info)`
+
+The `-dns` flag is useful for testing how a domain resolves with a specific DNS server, such as 1.1.1.1, 8.8.8.8, or DNS based filtering such as Cloudflare 1.1.1.3 or OpenDNS 208.67.222.222. It’s also great for testing locally hosted DNS servers like Pi-hole or pfSense.
 
 The tool can also be used with a custom subdomain list via the `-sub` flag to verify if known subdomains are resolving correctly through services like Cloudflare, or to check if they are leaking their host IP.
 
+The `-json` flag will format stdout to json, while the `-o` flag will redirect stdout to file.
+
 If neither the `-dns` nor `-sub` flags are given, the tool defaults to 1.1.1.1 and a built-in list of the top 10k common subdomains.
 
-- Supported flags:
-  - `-url example.org (required)`
-  - `-sub subdomain.txt (optional, defaults to built-in list)`
-  - `-dns 8.8.8.8 (optional, defaults to 1.1.1.1)`
-  - `-help (usage instructions)`
-  - `-version (version info)`
+IPScope output is:
+`label` `domain` `ip` `asn` `city` `region` `country` `proxy`
 
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
@@ -55,7 +95,7 @@ If neither the `-dns` nor `-sub` flags are given, the tool defaults to 1.1.1.1 a
   - `go build -ldflags="-s -w" .`
 - Compile from source code how-to:
   - https://github.com/cyclone-github/scripts/blob/main/intro_to_go.txt
-### Change Log:
+### Changelog:
 - https://github.com/cyclone-github/ipscope/blob/main/CHANGELOG.md
 
 ### Antivirus False Positives:
