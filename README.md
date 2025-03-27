@@ -68,7 +68,7 @@ Output redirected to file: output.txt
 ### Supported flags:
   - `-url {foobar.com}        (url to scan)`
   - `-sub {subdirectory_file} (defaults to built-in list)`
-  - `-dns {dns_server}           (defaults to 1.1.1.1)`
+  - `-dns {dns_server}        (defaults to 1.1.1.1)`
   - `-json                    (outputs stdout to json format)`
   - `-o {output_file}         (redirects stdout to file)`
   - `-help                    (prints usage instructions)`
