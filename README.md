@@ -85,6 +85,14 @@ If neither the `-dns` nor `-sub` flags are given, the tool defaults to 1.1.1.1 a
 IPScope output is:
 `label` `domain` `ip` `asn` `city` `region` `country` `proxy`
 
+### Install latest release:
+```
+go install github.com/cyclone-github/ipscope@latest
+```
+### Install from latest source code (bleeding edge):
+```
+go install github.com/cyclone-github/ipscope@main
+```
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
 - This assumes you have Go and Git installed

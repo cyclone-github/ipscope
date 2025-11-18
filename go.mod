@@ -1,3 +1,3 @@
-module ipscope
+module github.com/cyclone-github/ipscope
 
-go 1.25.0
+go 1.25.2
