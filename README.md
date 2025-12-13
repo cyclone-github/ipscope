@@ -1,4 +1,4 @@
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=cyclone-github&repo=ipscope&theme=gruvbox)](https://github.com/cyclone-github/ipscope/)
+[![Readme Card](https://github-readme-stats-fast.vercel.app/api/pin/?username=cyclone-github&repo=ipscope&theme=gruvbox)](https://github.com/cyclone-github/ipscope/)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/cyclone-github/ipscope)](https://goreportcard.com/report/github.com/cyclone-github/ipscope)
 [![GitHub issues](https://img.shields.io/github/issues/cyclone-github/ipscope.svg)](https://github.com/cyclone-github/ipscope/issues)
@@ -93,6 +93,7 @@ go install github.com/cyclone-github/ipscope@latest
 ```
 go install github.com/cyclone-github/ipscope@main
 ```
+
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
 - This assumes you have Go and Git installed
